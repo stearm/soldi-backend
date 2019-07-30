@@ -107,7 +107,7 @@ export const MovementService = (collection: Collection<MovementDB>): MovementSer
     const movement = await collection.findOne({
       _id: new ObjectID(id)
     });
-    console.log(movement);
+
     return movement ? normalizeId(movement) : null;
   };
 
