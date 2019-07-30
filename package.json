@@ -1,0 +1,21 @@
+{
+  "name": "soldi-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "nodemon 'src/index.ts' --exec 'ts-node'"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^3.1.30",
+    "nodemon": "1.19.1",
+    "ts-node": "8.3.0",
+    "typescript": "3.5.3"
+  },
+  "dependencies": {
+    "apollo-server": "2.7.2",
+    "graphql": "14.4.2",
+    "graphql-date": "^1.0.3",
+    "mongodb": "^3.3.0-beta2"
+  }
+}
