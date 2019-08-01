@@ -17,6 +17,7 @@ export interface MovementDB {
   description?: string;
   type: MovementType;
   date: Date;
+  userId: string;
 }
 
 export type Movement = Omit<MovementDB, "_id"> & { id: string };

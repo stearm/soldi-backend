@@ -1,4 +1,7 @@
+import { ObjectID } from "mongodb";
+
 export interface BalanceDB {
+  _id: ObjectID;
   owner: string;
   amount: number;
 }

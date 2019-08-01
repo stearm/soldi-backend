@@ -1,7 +1,8 @@
 import { ListMovementsWhere } from "./../types/MovementWhere";
 import { MongoClient, Collection, ObjectID } from "mongodb";
-import { Movement, MovementDB, MovementType } from "../types/Movement";
+import { Movement, MovementDB } from "../types/Movement";
 import { MovementList } from "../types/MovementList";
+import { normalizeId } from "../utils";
 
 /**
  * Useful resource: https://www.guru99.com/node-js-mongodb.html
@@ -9,20 +10,11 @@ import { MovementList } from "../types/MovementList";
 
 export interface MovementServiceT {
   list: (offset: number | null, limit: number | null, where: ListMovementsWhere | null) => Promise<MovementList>;
-  create: (movement: Omit<Movement, "id">) => Promise<Movement | null>;
+  create: (movement: Omit<Movement, "id" | "user">) => Promise<Movement | null>;
   update: (movement: Partial<Movement> & { id: string }) => Promise<Movement | null>;
   remove: (id: string) => Promise<string | null>;
   get: (id: string) => Promise<Movement | null>;
 }
-
-const normalizeId = <T extends { _id: ObjectID }>(obj: T): any => {
-  return {
-    id: obj._id.toHexString(),
-    ...Object.keys(obj)
-      .filter(k => k !== "_id")
-      .reduce((prev, next) => ({ ...prev, [next]: obj[next] }), {})
-  };
-};
 
 export const MovementService = (collection: Collection<MovementDB>): MovementServiceT => {
   const list = async (
@@ -36,16 +28,20 @@ export const MovementService = (collection: Collection<MovementDB>): MovementSer
         filter = { ...filter, type: where.type };
       }
 
+      let dateFilter = { date: {} };
+
       if (where.from) {
-        filter = { ...filter, from: where.from };
+        dateFilter = { date: { $gte: where.from } };
       }
 
       if (where.to) {
-        filter = { ...filter, from: where.to };
+        dateFilter = { date: { ...dateFilter.date, $lte: where.to } };
       }
+
+      filter = { ...filter, ...dateFilter };
     }
 
-    let movementsQ = collection.find(filter);
+    let movementsQ = collection.find(filter).sort({ date: -1 });
 
     if (offset) {
       movementsQ = movementsQ.skip(offset);
@@ -67,13 +63,14 @@ export const MovementService = (collection: Collection<MovementDB>): MovementSer
     };
   };
 
-  const create = async (movement: Omit<Movement, "id">): Promise<Movement | null> => {
+  const create = async (movement: Omit<Movement, "id" | "user">): Promise<Movement | null> => {
     const result = await collection.insertOne({
       _id: new ObjectID(),
       amount: movement.amount,
       date: movement.date || new Date(),
       description: movement.description,
-      type: movement.type
+      type: movement.type,
+      userId: "ste"
     });
 
     return get(result.insertedId.toHexString());
